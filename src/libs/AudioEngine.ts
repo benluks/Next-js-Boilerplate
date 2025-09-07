@@ -1,6 +1,5 @@
 import type { Note } from '@/libs/Note';
 import type { HiddenNote } from '@/MusicTest/types/MusicTypes';
-import Error from 'next/error';
 import * as Tone from 'tone';
 import { CONFIG_HELPERS } from '@/config/gameConfig';
 import { midiNumberToNote } from '@/utils/musicUtils';
