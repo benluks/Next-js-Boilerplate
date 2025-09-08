@@ -31,7 +31,7 @@ export const Answering: React.FC<AnsweringProps> = ({ selectedNotes, currentNote
         <motion.button
           whileTap={{ scale: 0.96 }}
           className="flex h-24 w-24 items-center justify-center rounded-full border border-black/15 shadow-sm"
-          aria-label="Play chord"
+          aria-label="Play Correct Notes"
           onClick={replayNotes}
           disabled={isPlaying}
         >

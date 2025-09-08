@@ -109,6 +109,10 @@ export const getNoteValidationState = (
 export const createAndRenderStaveNotes = (
   { staves, context, noteMaps, hoveredNote, offset, animationState }: CreateAndRenderProps,
 ) => {
+  // Store original note start positions to restore later
+  const originalTrebleStartX = staves.treble.getNoteStartX();
+  const originalBassStartX = staves.bass.getNoteStartX();
+
   const staveNotes = noteMaps.map(noteMap => createStaveNote({ ...noteMap, staves, hoveredNote, animationState }));
   const voices = staveNotes.map((staveNote) => {
     const voice = new Voice({
@@ -131,6 +135,10 @@ export const createAndRenderStaveNotes = (
   }
 
   voices.forEach((voice, i) => voice.draw(context, staves[noteMaps[i]?.clef as Clef]));
+
+  // Restore original positions to prevent drift
+  staves.treble.setNoteStartX(originalTrebleStartX);
+  staves.bass.setNoteStartX(originalBassStartX);
 };
 
 export const renderNoteGroup = (
