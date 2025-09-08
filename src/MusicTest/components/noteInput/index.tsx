@@ -7,7 +7,6 @@ import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerV
 
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Renderer, Stave, StaveConnector } from 'vexflow';
-import { audioEngine } from '@/libs/AudioEngine';
 import { Note } from '@/libs/Note';
 import {
   useKeyboardNavigation,
@@ -21,7 +20,6 @@ import { clearAndRedrawStaff, renderNotesOnStaff, renderPreviewNote } from '@/Mu
 import { StaffCoordinates } from '@/MusicTest/utils/staffCoordinates';
 import {
   AccessibilityAnnouncements,
-  MobileNoteInput,
   NoteContextMenu,
   ValidationDisplay,
   ValidationStats,
@@ -311,7 +309,16 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     } catch (error) {
       console.error('Failed to render notes:', error);
     }
-  }, [selectedNotes, showCorrectAnswer, correctNotes, validationResult, hoveredPosition, previewAnimation, focusedPosition, keyboardMode]);
+  }, [
+    selectedNotes,
+    showCorrectAnswer,
+    correctNotes,
+    validationResult,
+    hoveredPosition,
+    previewAnimation,
+    focusedPosition,
+    keyboardMode,
+  ]);
 
   return (
     <div className={`${className}`}>
@@ -390,35 +397,15 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 
       {/* Mobile Note Input */}
 
-      <MobileNoteInput
+      {/* <MobileNoteInput
         selectedNotes={selectedNotes}
         onNoteSelect={onNoteSelect}
         onNoteDeselect={onNoteDeselect}
         disabled={disabled}
         className="mt-4 w-full px-2"
-      />
+      /> */}
 
       {/* Audio Controls */}
-      {enableAudio && selectedNotes.length > 0 && (
-        <div className="mt-2 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={async () => {
-              try {
-                await audioEngine.playNotes(selectedNotes);
-              } catch (error) {
-                console.warn('Failed to play notes:', error);
-              }
-            }}
-            className="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          >
-            🔊 Play Notes
-          </button>
-          <span className="text-sm text-gray-600">
-            {selectedNotes.map(note => note.toString()).join(', ')}
-          </span>
-        </div>
-      )}
 
       {/* Debug info */}
       <div className="mt-2 text-sm text-gray-600">
@@ -448,9 +435,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
             {`Hover: ${hoveredPosition.pitch && hoveredPosition.pitch.toString()} (line ${hoveredPosition.linePosition})`}
           </span>
         )}
-        {canAddNote()
-          ? (<span className="ml-2 text-green-500">Can add more notes</span>)
-          : (<span className="ml-2 text-orange-500">Maximum notes reached</span>)}
       </div>
     </div>
   );

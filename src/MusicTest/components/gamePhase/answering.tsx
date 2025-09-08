@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { GAME_CONFIG } from '@/config/gameConfig';
 import ClickableNoteInput from '@/MusicTest/components/noteInput';
+import { audioEngine } from '@/libs/AudioEngine';
 
 type AnsweringProps = {
   settings: GameSettings;
@@ -26,7 +27,7 @@ export const Answering: React.FC<AnsweringProps> = ({ selectedNotes, currentNote
         <h1 className="text-3xl leading-tight font-semibold">{t('instructions')}</h1>
       </div>
 
-      <div className="flex justify-center pt-4 pb-2">
+      <div className="flex justify-center pt-4 pb-2 gap-4">
         <motion.button
           whileTap={{ scale: 0.96 }}
           className="flex h-24 w-24 items-center justify-center rounded-full border border-black/15 shadow-sm"
@@ -38,6 +39,20 @@ export const Answering: React.FC<AnsweringProps> = ({ selectedNotes, currentNote
             <path d="M8 5v14l11-7-11-7z" />
           </svg>
         </motion.button>
+
+        {selectedNotes.length > 0 && (
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            className="flex h-24 w-24 items-center justify-center rounded-full border border-black/15 shadow-sm"
+            aria-label="Play Selected Notes"
+            onClick={async () => await audioEngine.playNotes(selectedNotes)}
+            disabled={isPlaying}
+          >
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7-11-7z" />
+            </svg>
+          </motion.button>)
+        }
       </div>
 
       <div className="flex justify-center gap-4">
