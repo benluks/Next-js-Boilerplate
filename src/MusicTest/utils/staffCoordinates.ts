@@ -11,18 +11,20 @@ const MINIMUM_NOTE = -14;
 export class StaffCoordinates {
   private staveTreble: Stave;
   private staveBass: Stave;
+  private scale: number;
   private lineSpacing: number;
   private staffTop: number;
   private middleLine: number;
   private staffBottom: number;
 
-  constructor(staves: { treble: Stave; bass: Stave }) {
-    this.staveTreble = staves.treble;
-    this.staveBass = staves.bass;
-    this.lineSpacing = staves.treble.getSpacingBetweenLines();
-    this.staffTop = staves.treble.getYForLine(0); // Top line of staff
-    this.middleLine = staves.treble.getYForLine(5);
-    this.staffBottom = staves.bass.getYForLine(4); // Bottom line of staff
+  constructor(props: { treble: Stave; bass: Stave; scale: number }) {
+    this.staveTreble = props.treble;
+    this.staveBass = props.bass;
+    this.scale = props.scale;
+    this.lineSpacing = props.treble.getSpacingBetweenLines() * this.scale;
+    this.staffTop = props.treble.getYForLine(0) * this.scale; // Top line of staff
+    this.middleLine = props.treble.getYForLine(5) * this.scale;
+    this.staffBottom = props.bass.getYForLine(4) * this.scale; // Bottom line of staff
   }
 
   linePositionToPitch(linePosition: number): Note {

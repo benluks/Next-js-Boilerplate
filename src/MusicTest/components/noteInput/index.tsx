@@ -195,6 +195,9 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     }
 
     try {
+      const spacingBetweenLinesPx: number = 10;
+      const SCALE = 1.4;
+
       containerRef.current.innerHTML = '';
 
       // Create VexFlow renderer
@@ -202,18 +205,19 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       renderer.resize(containerRef.current.clientWidth, height);
       const context = renderer.getContext();
 
+      context.scale(SCALE, SCALE);
+
       const { clientWidth, clientHeight } = containerRef.current;
 
-      const stavesWidth = clientWidth;
-      const stavesX = Math.floor((clientWidth - stavesWidth) / 2);
+      const stavesWidth = clientWidth / SCALE;
+      const stavesX = 0;
       const stavesVerticalCenter = Math.floor(clientHeight / 4);
 
-      const spacingBetweenLinesPx: number = 16;
       const staveHeight = 4 * spacingBetweenLinesPx;
 
       const staveTreble = new Stave(
         stavesX,
-        stavesVerticalCenter - (spacingBetweenLinesPx + staveHeight),
+        Math.floor(stavesVerticalCenter - (spacingBetweenLinesPx + staveHeight)),
         stavesWidth,
         { spacingBetweenLinesPx },
       );
@@ -223,7 +227,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 
       const staveBass = new Stave(
         stavesX,
-        stavesVerticalCenter + spacingBetweenLinesPx,
+        Math.floor(stavesVerticalCenter + spacingBetweenLinesPx),
         stavesWidth,
         { spacingBetweenLinesPx },
       );
@@ -255,7 +259,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       stavesRef.current.leftConnector = leftConnector;
       stavesRef.current.rightConnector = rightConnector;
 
-      staffCoordinatesRef.current = new StaffCoordinates({ treble: staveTreble, bass: staveBass });
+      staffCoordinatesRef.current = new StaffCoordinates({ treble: staveTreble, bass: staveBass, scale: SCALE });
     } catch (error) {
       console.error('Failed to initialize VexFlow:', error);
       // Fallback: show error message
@@ -400,13 +404,15 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       />
 
       {/* Validation Stats */}
-      {(showCorrectAnswer || validationResult) && (
-        <div className="mt-2 rounded border bg-gray-50 p-2">
-          <ValidationStats
-            validationResult={validationResult!}
-          />
-        </div>
-      )}
+      {
+        (showCorrectAnswer || validationResult) && (
+          <div className="mt-2 rounded border bg-gray-50 p-2">
+            <ValidationStats
+              validationResult={validationResult!}
+            />
+          </div>
+        )
+      }
 
       {/* Mobile Note Input */}
 
