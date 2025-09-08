@@ -33,7 +33,6 @@ export const Answering: React.FC<AnsweringProps> = ({ selectedNotes, currentNote
           className="flex h-24 w-24 items-center justify-center rounded-full border border-black/15 shadow-sm"
           aria-label="Play Correct Notes"
           onClick={replayNotes}
-          disabled={isPlaying}
         >
           <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
             <path d="M8 5v14l11-7-11-7z" />
@@ -46,7 +45,6 @@ export const Answering: React.FC<AnsweringProps> = ({ selectedNotes, currentNote
             className="flex h-24 w-24 items-center justify-center rounded-full border border-black/15 shadow-sm"
             aria-label="Play Selected Notes"
             onClick={async () => await audioEngine.playNotes(selectedNotes)}
-            disabled={isPlaying}
           >
             <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
               <path d="M8 5v14l11-7-11-7z" />

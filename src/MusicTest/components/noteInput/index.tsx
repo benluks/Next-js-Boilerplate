@@ -15,8 +15,8 @@ import {
   useStaffInteraction,
 } from '@/MusicTest/hooks';
 import { getStaffAriaDescription, getStaffAriaLabel } from '@/MusicTest/utils/accessibility';
-import { clearAndRedrawStaff, renderNotesOnStaff, renderPreviewNote } from '@/MusicTest/utils/noteRendering';
 
+import { clearAndRedrawStaff, renderNotesOnStaff, renderPreviewNote } from '@/MusicTest/utils/noteRendering';
 import { StaffCoordinates } from '@/MusicTest/utils/staffCoordinates';
 import {
   AccessibilityAnnouncements,
@@ -204,16 +204,29 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 
       const { clientWidth, clientHeight } = containerRef.current;
 
-      const stavesWidth = Math.min(clientWidth - 40, 200);
+      const stavesWidth = clientWidth;
       const stavesX = Math.floor((clientWidth - stavesWidth) / 2);
       const stavesVerticalCenter = Math.floor(clientHeight / 4);
 
-      const staveTreble = new Stave(stavesX, stavesVerticalCenter - 30, stavesWidth);
+      const spacingBetweenLinesPx: number = 16;
+      const staveHeight = 4 * spacingBetweenLinesPx;
+
+      const staveTreble = new Stave(
+        stavesX,
+        stavesVerticalCenter - (spacingBetweenLinesPx + staveHeight),
+        stavesWidth,
+        { spacingBetweenLinesPx },
+      );
       staveTreble.addClef('treble');
       staveTreble.setContext(context);
       staveTreble.draw();
 
-      const staveBass = new Stave(stavesX, stavesVerticalCenter + 30, stavesWidth);
+      const staveBass = new Stave(
+        stavesX,
+        stavesVerticalCenter + spacingBetweenLinesPx,
+        stavesWidth,
+        { spacingBetweenLinesPx },
+      );
       staveBass.addClef('bass');
       staveBass.setContext(context);
       staveBass.draw();
@@ -323,11 +336,11 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   return (
     <div className={`${className}`}>
       {/* Main staff container */}
-      <div className="relative" style={{ height }}>
+      <div className="relative">
         <div
           ref={containerRef}
           className={`
-          h-full w-full rounded border bg-white p-0 transition-all duration-200
+          h-full p-0 transition-all duration-200
           ${disabled ? 'cursor-not-allowed opacity-60' : ''}
           ${isOverInteractiveArea() ? 'shadow-md' : ''}
           ${keyboardMode ? 'ring-2 ring-blue-500/50' : ''}

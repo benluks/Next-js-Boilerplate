@@ -1,9 +1,9 @@
 import type { Note } from '@/libs/Note';
 import type { MusicCallback } from '@/MusicTest/types/game';
 import type { ValidationResult } from '@/utils/AnswerValidation';
+import { motion } from 'framer-motion';
 import { GAME_CONFIG } from '@/config/gameConfig';
 import ClickableNoteInput from '@/MusicTest/components/noteInput';
-import { Button } from '../ui/button';
 
 type ValidationProps = {
   validationResult: ValidationResult;
@@ -71,17 +71,14 @@ export const Validation: React.FC<ValidationProps> = ({ validationResult, select
         </div>
       </div>
 
-      {/* Compact feedback controls */}
-      <div className="flex justify-center gap-4">
-        <Button
-          onClick={replayNotes}
-          disabled={isPlaying}
-          children={isPlaying ? 'Playing...' : '🔊 Replay Notes'}
-        />
-        <Button
+      <div className="fixed inset-x-0 bottom-0 w-full p-4">
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          className="h-12 w-full rounded-2xl bg-black text-base font-medium text-white shadow-md"
           onClick={startNewRound}
-          children="➡️ Next Round"
-        />
+        >
+          Next Round
+        </motion.button>
       </div>
     </div>
   );
