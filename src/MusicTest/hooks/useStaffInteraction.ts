@@ -2,6 +2,7 @@ import type { RefObject } from 'react';
 import type { StaffCoordinates } from '../utils';
 import type { StaffPosition } from '@/MusicTest/types/StaffInteraction';
 import { useCallback, useRef, useState } from 'react';
+import { getMousePosition, getTouchPosition } from '../utils/touchHandling';
 
 /**
  * Hook for managing staff interaction (mouse and touch events)
@@ -26,13 +27,7 @@ export const useStaffInteraction = (
       return;
     }
 
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) {
-      return;
-    }
-
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const { x, y } = getMousePosition(event);
 
     // Clear any existing hover timeout
     if (hoverTimeoutRef.current) {
@@ -89,13 +84,7 @@ export const useStaffInteraction = (
       return;
     }
 
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) {
-      return;
-    }
-
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const { x, y } = getMousePosition(event);
 
     if (staffCoordinatesRef.current.isWithinStaffArea(x, y)) {
       const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
@@ -113,13 +102,7 @@ export const useStaffInteraction = (
       return;
     }
 
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) {
-      return;
-    }
-
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const { x, y } = getMousePosition(event);
 
     if (staffCoordinatesRef.current.isWithinStaffArea(x, y)) {
       const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
@@ -183,6 +166,104 @@ export const useStaffInteraction = (
   }, [disabled, hoveredPosition]);
 
   /**
+   * Handle touch start events
+   */
+  const handleTouchStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    if (!containerRef || !staffCoordinatesRef.current || disabled) {
+      return;
+    }
+
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+
+    const { x, y } = getTouchPosition(touch as Touch, containerRef.current!);
+
+    if (staffCoordinatesRef.current.isWithinStaffArea(x, y)) {
+      const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
+      onNoteClick(position);
+    }
+  }, [staffCoordinatesRef, disabled, containerRef, onNoteClick]);
+
+  /**
+   * Handle touch move events
+   */
+  const handleTouchMove = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    if (!containerRef || !staffCoordinatesRef.current || disabled) {
+      return;
+    }
+
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+
+    const { x, y } = getTouchPosition(touch as Touch, containerRef.current!);
+
+    // Clear any existing hover timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+
+    if (staffCoordinatesRef.current.isWithinStaffArea(x, y)) {
+      const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
+
+      // Only update if position actually changed to avoid unnecessary re-renders
+      if (!hoveredPosition
+        || hoveredPosition.pitch !== position.pitch
+        || Math.abs(hoveredPosition.x - position.x) > 5) {
+        if (!isHovering) {
+          setIsHovering(true);
+          setPreviewAnimation('fadeIn');
+        }
+
+        setHoveredPosition(position);
+
+        // Clear animation state after animation completes
+        hoverTimeoutRef.current = setTimeout(() => {
+          setPreviewAnimation('preview');
+        }, 150);
+      }
+    } else {
+      // Touch is outside staff area
+      if (isHovering) {
+        setPreviewAnimation('fadeOut');
+        setIsHovering(false);
+
+        setHoveredPosition(null);
+
+        // Clear hover position after fade out animation
+        hoverTimeoutRef.current = setTimeout(() => {
+          setHoveredPosition(null);
+          setPreviewAnimation('preview');
+        }, 150);
+      }
+    }
+  }, [staffCoordinatesRef, disabled, containerRef, hoveredPosition, isHovering]);
+
+  /**
+   * Handle touch end events
+   */
+  const handleTouchEnd = useCallback((_event: React.TouchEvent<HTMLDivElement>) => {
+    // Clear any existing timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+
+    if (isHovering) {
+      setPreviewAnimation('fadeOut');
+      setIsHovering(false);
+
+      // Clear hover position after fade out animation
+      hoverTimeoutRef.current = setTimeout(() => {
+        setHoveredPosition(null);
+        setPreviewAnimation('preview');
+      }, 150);
+    }
+  }, [isHovering]);
+
+  /**
    * Check if mouse is currently over an interactive area
    */
   const isOverInteractiveArea = useCallback(() => {
@@ -195,6 +276,9 @@ export const useStaffInteraction = (
     handleMouseClick,
     handleMouseLeave,
     handleContextMenu,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
 
     // State
     hoveredPosition,

@@ -10,6 +10,7 @@ import { Renderer, Stave, StaveConnector } from 'vexflow';
 import { Note } from '@/libs/Note';
 import {
   useKeyboardNavigation,
+  useMobileNoteDrag,
   useNoteManagement,
   useNoteSelection,
   useStaffInteraction,
@@ -81,7 +82,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   // Use note management hook
   const {
     toggleNote,
-    canAddNote,
     removeNotes,
   } = useNoteManagement(selectedNotes, onNoteSelect, onNoteDeselect, maxNotes, limitNotes);
 
@@ -137,6 +137,9 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     handleMouseClick: staffHandleMouseClick,
     handleMouseLeave: staffHandleMouseLeave,
     handleContextMenu: staffHandleContextMenu,
+    handleTouchStart: _staffHandleTouchStart,
+    handleTouchMove: _staffHandleTouchMove,
+    handleTouchEnd: _staffHandleTouchEnd,
     hoveredPosition,
     previewAnimation,
     getCursorStyle,
@@ -145,6 +148,26 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     containerRef,
     staffCoordinatesRef,
     handleNoteClick,
+    disabled,
+  );
+
+  // Use mobile note drag hook
+  const {
+    dragState,
+    handleTouchStart: dragHandleTouchStart,
+    handleTouchMove: dragHandleTouchMove,
+    handleTouchEnd: dragHandleTouchEnd,
+    handleTouchCancel: dragHandleTouchCancel,
+  } = useMobileNoteDrag(
+    containerRef,
+    staffCoordinatesRef,
+    selectedNotes,
+    (oldNote: Note, newNote: Note) => {
+      onNoteDeselect(oldNote);
+      onNoteSelect(newNote);
+    },
+    onNoteDeselect,
+    onNoteSelect,
     disabled,
   );
 
@@ -355,6 +378,10 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           onClick={handleMouseClick}
           onKeyDown={(_) => { }}
           onContextMenu={staffHandleContextMenu}
+          onTouchStart={dragHandleTouchStart}
+          onTouchMove={dragHandleTouchMove}
+          onTouchEnd={dragHandleTouchEnd}
+          onTouchCancel={dragHandleTouchCancel}
           role="button"
           aria-label={ariaLabel}
           aria-describedby="staff-description"
@@ -452,6 +479,11 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
         {hoveredPosition && !keyboardMode && (
           <span className="ml-2 text-blue-500">
             {`Hover: ${hoveredPosition.pitch && hoveredPosition.pitch.toString()} (line ${hoveredPosition.linePosition})`}
+          </span>
+        )}
+        {dragState.isDragging && (
+          <span className="ml-2 text-orange-500">
+            {`Dragging: ${dragState.draggedNote?.toString()} ${dragState.isValidDrop ? '(valid)' : '(invalid)'}`}
           </span>
         )}
       </div>

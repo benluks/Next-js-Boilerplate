@@ -15,7 +15,7 @@ type ValidationProps = {
   replayNotes: MusicCallback;
 };
 
-export const Validation: React.FC<ValidationProps> = ({ validationResult, selectedNotes, currentNotes, isPlaying, startNewRound, replayNotes }) => {
+export const Validation: React.FC<ValidationProps> = ({ validationResult, selectedNotes, currentNotes, startNewRound }) => {
   return (
     <div>
       {/* Show comparison between user answer and correct answer */}

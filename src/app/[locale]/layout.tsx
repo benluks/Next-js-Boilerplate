@@ -99,13 +99,3 @@ export default async function RootLayout(props: {
     </html>
   );
 }
-
-const BodyStuff: React.FC = () => {
-  return (
-    <div className="mt-2 flex-1 px-4">
-      <div className="rounded-2xl border border-black/10 p-4 pb-6 shadow-sm">
-        <GrandStaffVisual />
-      </div>
-    </div>
-  );
-};

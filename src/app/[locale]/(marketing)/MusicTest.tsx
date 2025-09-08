@@ -5,7 +5,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { settingsManager } from '@/libs/SettingsManager';
 import { SettingsPanel } from '@/MusicTest/components/settingsPanel';
 import MusicTestController from '@/MusicTest/Controller';
-import { main } from 'knip';
 // import { StatisticsDisplay } from './StatisticsDisplay';
 
 type TabType = 'game' | 'settings' | 'statistics';
