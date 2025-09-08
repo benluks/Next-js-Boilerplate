@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { settingsManager } from '@/libs/SettingsManager';
 import { SettingsPanel } from '@/MusicTest/components/settingsPanel';
 import MusicTestController from '@/MusicTest/Controller';
+import { main } from 'knip';
 // import { StatisticsDisplay } from './StatisticsDisplay';
 
 type TabType = 'game' | 'settings' | 'statistics';
@@ -100,7 +101,7 @@ export function MusicTestPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div
           id={`${activeTab}-panel`}
