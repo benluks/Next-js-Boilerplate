@@ -389,15 +389,14 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       )}
 
       {/* Mobile Note Input */}
-      <div className="mt-4 border-t pt-4">
-        <MobileNoteInput
-          selectedNotes={selectedNotes}
-          onNoteSelect={onNoteSelect}
-          onNoteDeselect={onNoteDeselect}
-          disabled={disabled}
-          className="w-full"
-        />
-      </div>
+
+      <MobileNoteInput
+        selectedNotes={selectedNotes}
+        onNoteSelect={onNoteSelect}
+        onNoteDeselect={onNoteDeselect}
+        disabled={disabled}
+        className="mt-4 w-full px-2"
+      />
 
       {/* Audio Controls */}
       {enableAudio && selectedNotes.length > 0 && (

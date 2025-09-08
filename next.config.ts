@@ -11,6 +11,7 @@ const baseConfig: NextConfig = {
   },
   poweredByHeader: false,
   reactStrictMode: true,
+  devIndicators: false,
 
   // Optimize music library imports for better bundle size
   webpack: (config, { isServer }) => {

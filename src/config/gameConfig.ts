@@ -123,14 +123,6 @@ export const UI_CONFIG = {
   ] as const,
 } as const;
 
-// Mobile input configuration
-export const MOBILE_INPUT_CONFIG = {
-  MIN_NOTE: 'C3' as Note,
-  MAX_NOTE: 'C6' as Note,
-  DEFAULT_OCTAVE: 4,
-  ACTIVE_NOTE_COLOR: '#ff6b35', // Orange color for active/editing note
-} as const;
-
 // Storage configuration
 export const STORAGE_CONFIG = {
   SETTINGS_KEY: 'music-test-settings',
@@ -204,53 +196,4 @@ export const CONFIG_HELPERS = {
     }
     return Array.from({ length: maxMidiNumber - minMidiNumber + 1 }, (_, i) => minMidiNumber + i) as MidiNote[];
   },
-
-  /**
-   * Mobile input helpers
-   */
-  mobile: {
-    /**
-     * Check if a note is within the mobile input range
-     */
-    isNoteInRange: (note: Note): boolean => {
-      // Simple string comparison works for our note format
-      return note >= MOBILE_INPUT_CONFIG.MIN_NOTE && note <= MOBILE_INPUT_CONFIG.MAX_NOTE;
-    },
-
-    /**
-     * Clamp a note to the mobile input range
-     */
-    clampNoteToRange: (note: Note): Note => {
-      if (note < MOBILE_INPUT_CONFIG.MIN_NOTE) {
-        return MOBILE_INPUT_CONFIG.MIN_NOTE;
-      }
-      if (note > MOBILE_INPUT_CONFIG.MAX_NOTE) {
-        return MOBILE_INPUT_CONFIG.MAX_NOTE;
-      }
-      return note;
-    },
-
-    /**
-     * Get the next available staff position for a note class
-     */
-    getNextAvailablePosition: (lastNote: Note | null, noteClass: string, selectedNotes: Note[]): Note => {
-      const defaultNote = `${noteClass}${MOBILE_INPUT_CONFIG.DEFAULT_OCTAVE}` as Note;
-
-      if (!lastNote) {
-        return defaultNote;
-      }
-
-      // Find the next higher position for this note class
-      let octave = MOBILE_INPUT_CONFIG.DEFAULT_OCTAVE;
-      let candidate = `${noteClass}${octave}` as Note;
-
-      // If this note class already exists, find next available octave
-      while (selectedNotes.includes(candidate) && octave <= 6) {
-        octave++;
-        candidate = `${noteClass}${octave}` as Note;
-      }
-
-      return CONFIG_HELPERS.mobile.clampNoteToRange(candidate);
-    },
-  },
-} as const;
+};

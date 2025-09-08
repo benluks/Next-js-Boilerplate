@@ -44,29 +44,27 @@ export const MobileNoteInput: React.FC<MobileNoteInputProps> = ({
     <div className={className}>
       {selectedNotes.length > 0
         && (
-          <div className="mb-3 rounded-lg border bg-blue-50 p-2 text-center">
-            <div className="mb-2 text-xs font-medium text-blue-700">Selected Notes:</div>
-            <div className="flex flex-wrap justify-center gap-2">
-              {selectedNotes.map(note => (
-                <button
-                  key={note.id}
-                  type="button"
-                  onClick={_ => focusNote(note)}
-                  className="rounded bg-blue-200 px-3 py-1 text-sm font-semibold text-blue-800 transition-colors hover:bg-blue-300 active:bg-blue-400"
-                  title={`Click to remove ${note.toString()}`}
-                >
-                  {note.displayFormat}
-                </button>
-              ))}
-              {selectedNotes.length === 0 && (
-                <span className="text-sm text-blue-600 italic">No notes selected</span>
-              )}
-            </div>
+          <div className="">
+            {selectedNotes.map(note => (
+              <button
+                key={note.id}
+                type="button"
+                onClick={_ => focusNote(note)}
+                className="rounded bg-blue-200 px-3 py-1 text-sm font-semibold text-blue-800 transition-colors hover:bg-blue-300 active:bg-blue-400"
+                title={`Click to remove ${note.toString()}`}
+              >
+                {note.displayFormat}
+              </button>
+            ))}
+            {selectedNotes.length === 0 && (
+              <span className="text-sm text-blue-600 italic">No notes selected</span>
+            )}
           </div>
+
         )}
 
       {/* Note Class Buttons - Compact Grid */}
-      <div className="mb-3">
+      <div className="my-4">
         <div className="grid grid-cols-7 gap-1">
           {NOTE_CLASSES.map((noteClass) => {
             const isActive = isNoteClassActive(noteClass);

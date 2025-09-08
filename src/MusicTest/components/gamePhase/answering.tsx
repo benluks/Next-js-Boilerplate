@@ -1,9 +1,10 @@
 import type { Note } from '@/libs/Note';
 import type { MusicCallback } from '@/MusicTest/types/game';
 import type { GameSettings } from '@/MusicTest/types/MusicTypes';
+import { motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 import { GAME_CONFIG } from '@/config/gameConfig';
 import ClickableNoteInput from '@/MusicTest/components/noteInput';
-import { Button } from '../ui/button';
 
 type AnsweringProps = {
   settings: GameSettings;
@@ -18,28 +19,29 @@ type AnsweringProps = {
 };
 
 export const Answering: React.FC<AnsweringProps> = ({ selectedNotes, currentNotes, limitNotes, settings, noteHandlers, isPlaying, replayNotes, submitAnswer }) => {
+  const t = useTranslations('MusicTest');
   return (
-    <div>
-      <div className="mb-6 text-center">
-        <p className="mb-4 text-gray-600">
-          Select the notes you heard by clicking on the staff.
-          <br />
-          <span className="text-sm text-gray-500">
-            Tip: You can change the note playback mode above at any time.
-          </span>
-        </p>
-        <div className="flex justify-center gap-4">
-          <Button
-            onClick={replayNotes}
-            disabled={isPlaying}
-            children={isPlaying ? 'Playing...' : 'Replay Notes'}
-          />
-          <Button
-            onClick={submitAnswer}
-            disabled={selectedNotes.length === 0}
-            children="Submit Answer"
-          />
-        </div>
+    <>
+      <div className="px-4 text-center">
+        <h1 className="text-3xl leading-tight font-semibold">{t('instructions')}</h1>
+      </div>
+
+      <div className="flex justify-center pt-4 pb-2">
+        <motion.button
+          whileTap={{ scale: 0.96 }}
+          className="flex h-24 w-24 items-center justify-center rounded-full border border-black/15 shadow-sm"
+          aria-label="Play chord"
+          onClick={replayNotes}
+          disabled={isPlaying}
+        >
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7-11-7z" />
+          </svg>
+        </motion.button>
+      </div>
+
+      <div className="flex justify-center gap-4">
+
       </div>
 
       <ClickableNoteInput
@@ -54,6 +56,16 @@ export const Answering: React.FC<AnsweringProps> = ({ selectedNotes, currentNote
         height={GAME_CONFIG.STAFF_HEIGHT}
         respectGamePhase={false}
       />
-    </div>
+      {/* Submit */}
+      <div className="p-4 w-full inset-x-0 fixed bottom-0">
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          className="h-12 w-full rounded-2xl bg-black text-base font-medium text-white shadow-md"
+          onClick={submitAnswer}
+        >
+          Submit
+        </motion.button>
+      </div>
+    </>
   );
 };

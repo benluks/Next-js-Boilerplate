@@ -82,6 +82,7 @@
     "tab_game": "Game",
     "tab_settings": "Settings",
     "tab_statistics": "Statistics",
-    "accessibility_info": "This application is designed to be accessible to all users, including those using screen readers or keyboard navigation."
+    "accessibility_info": "This application is designed to be accessible to all users, including those using screen readers or keyboard navigation.",
+    "instructions": "Enter the notes you hear"
   }
 }

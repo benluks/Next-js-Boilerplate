@@ -15,7 +15,6 @@ import { settingsManager } from '@/libs/SettingsManager';
 import { statisticsTracker } from '@/libs/StatisticsTracker';
 import { EMPTY_OBJECT } from '@/MusicTest/types/MusicTypes';
 import { validateAnswer } from '@/utils/AnswerValidation';
-import { Dashboard } from './components/dashboard';
 import { GameError } from './components/error';
 import { GamePhase } from './components/gamePhase';
 
@@ -248,8 +247,8 @@ const MusicTestController: React.FC<GameControllerProps> = ({
   }
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col items-center p-6">
-      <Dashboard {...{ gameState, settings, handleSettingsChange }} />
+    <div>
+      {/* <Dashboard {...{ gameState, settings, handleSettingsChange }} /> */}
       {audioError && <GameError {...{ errorType: 'audio', dismiss: () => setAudioError(null), message: audioError }} />}
       <GamePhase
         settings={settings}
