@@ -26,6 +26,10 @@ export const NOTE_STYLES = {
   preview: { fillStyle: '#9ca3af', strokeStyle: '#9ca3af', opacity: 0.5 },
   fadeIn: { fillStyle: '#9ca3af', strokeStyle: '#9ca3af', opacity: 0.6 },
   fadeOut: { fillStyle: '#9ca3af', strokeStyle: '#9ca3af', opacity: 0.3 },
+  // Drag-specific styles
+  dragging: { fillStyle: '#3b82f6', strokeStyle: '#3b82f6', opacity: 0.8 },
+  ghost: { fillStyle: '#9ca3af', strokeStyle: '#9ca3af', opacity: 0.4 },
+  invalid: { fillStyle: '#dc2626', strokeStyle: '#dc2626', opacity: 0.6 },
 } as const satisfies Record<string, NoteStyle>;
 
 export type NoteStyleKey = keyof typeof NOTE_STYLES;

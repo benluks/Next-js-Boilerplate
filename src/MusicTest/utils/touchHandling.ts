@@ -46,3 +46,51 @@ export const isValidTouchTarget = (width: number, height: number, config: TouchC
   // Placeholder implementation
   return width >= config.minTouchTarget && height >= config.minTouchTarget;
 };
+
+/**
+ * Detect if enough time has passed for a long press
+ */
+export const detectLongPress = (startTime: number, currentTime: number, config: TouchConfig = DEFAULT_TOUCH_CONFIG): boolean => {
+  return currentTime - startTime >= config.longPressDelay;
+};
+
+/**
+ * Calculate distance between two touch points
+ */
+export const getTouchDistance = (start: Touch, current: Touch): number => {
+  const dx = current.clientX - start.clientX;
+  const dy = current.clientY - start.clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+};
+
+/**
+ * Determine if touch movement is significant enough to start drag
+ */
+export const shouldStartDrag = (distance: number, timeElapsed: number, _config: TouchConfig = DEFAULT_TOUCH_CONFIG): boolean => {
+  const minDistance = 10; // pixels
+  const minTime = 100; // ms
+  return distance > minDistance && timeElapsed > minTime;
+};
+
+/**
+ * Throttle function for touch move events
+ */
+export const throttleTouchMove = (callback: Function, delay: number = 16): Function => {
+  let timeoutId: NodeJS.Timeout | null = null;
+  let lastExecTime = 0;
+  
+  return (...args: any[]) => {
+    const currentTime = Date.now();
+    
+    if (currentTime - lastExecTime > delay) {
+      callback(...args);
+      lastExecTime = currentTime;
+    } else {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        callback(...args);
+        lastExecTime = Date.now();
+      }, delay - (currentTime - lastExecTime));
+    }
+  };
+};

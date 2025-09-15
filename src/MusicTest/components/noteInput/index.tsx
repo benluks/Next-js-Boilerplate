@@ -6,6 +6,7 @@ import type { Staves } from '@/MusicTest/types/MusicTypes';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 
 import React, { useCallback, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Renderer, Stave, StaveConnector } from 'vexflow';
 import { Note } from '@/libs/Note';
 import {
@@ -14,6 +15,7 @@ import {
   useNoteSelection,
   useStaffInteraction,
 } from '@/MusicTest/hooks';
+import { useMobileNoteDrag } from '@/MusicTest/hooks/useMobileNoteDrag';
 import { getStaffAriaDescription, getStaffAriaLabel } from '@/MusicTest/utils/accessibility';
 
 import { clearAndRedrawStaff, renderNotesOnStaff, renderPreviewNote } from '@/MusicTest/utils/noteRendering';
@@ -95,6 +97,41 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     isNoteSelected: isInternallySelected,
   } = useNoteSelection(selectedNotes, onNoteDeselect, removeNotes);
 
+  // Use mobile note drag hook
+  const {
+    dragState,
+    startDrag,
+    updateDragPosition,
+    endDrag,
+    cancelDrag,
+  } = useMobileNoteDrag({
+    onNoteMove: (oldNote, newNote) => {
+      onNoteDeselect(oldNote);
+      onNoteSelect(newNote);
+    },
+    onDragStart: (note) => {
+      console.log('Drag started for note:', note.toString());
+
+      console.log('Note removed from selectedNotes, now rendering as preview');
+    },
+    onDragEnd: (note, finalPosition) => {
+      if (finalPosition) {
+        // Create new note at final position with updated pitch
+        const newNote = new Note({
+          ...note,
+          linePosition: finalPosition.linePosition,
+          // The pitch will be automatically calculated from linePosition
+        });
+        onNoteSelect(newNote);
+        console.log('Note moved to:', finalPosition.linePosition, 'pitch:', newNote.toString());
+      } else {
+        // Snap back to original position
+        onNoteSelect(note);
+        console.log('Note snapped back to original position');
+      }
+    },
+  }, selectedNotes, staffCoordinatesRef.current);
+
   // Handle note click from staff interaction
   const handleNoteClick = useCallback(async (position: StaffPosition & { contextMenu?: { x: number; y: number } }) => {
     if (disabled) {
@@ -137,8 +174,13 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     handleMouseClick: staffHandleMouseClick,
     handleMouseLeave: staffHandleMouseLeave,
     handleContextMenu: staffHandleContextMenu,
+    handleTouchStart: staffHandleTouchStart,
+    handleTouchMove: staffHandleTouchMove,
+    handleTouchEnd: staffHandleTouchEnd,
     hoveredPosition,
     previewAnimation,
+    isLongPressActive,
+    isDragging: isStaffDragging,
     getCursorStyle,
     isOverInteractiveArea,
   } = useStaffInteraction(
@@ -146,6 +188,22 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     staffCoordinatesRef,
     handleNoteClick,
     disabled,
+    (_, position) => {
+      // Handle long press - start drag
+      const existingNote = selectedNotes.find(n => n.linePosition === position.linePosition);
+      if (existingNote) {
+        onNoteDeselect(existingNote);
+        startDrag(existingNote, position);
+      }
+    },
+    (x, y, position, isValid) => {
+      // Handle drag move
+      updateDragPosition(x, y, position, isValid);
+    },
+    () => {
+      // Handle drag end
+      endDrag();
+    },
   );
 
   const {
@@ -323,6 +381,27 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           previewAnimation,
         );
       }
+
+      // Render dragged note as preview note
+      if (dragState.isDragging && dragState.draggedNote) {
+        renderPreviewNote(
+          stavesRef.current as Staves,
+          context,
+          dragState.draggedNote,
+          'dragging' as any, // Use dragging animation state
+        );
+      }
+
+      // Render ghost note at target position
+      if (dragState.isDragging && dragState.targetPosition) {
+        const animationState = dragState.isValidDrop ? 'ghost' : 'invalid';
+        renderPreviewNote(
+          stavesRef.current as Staves,
+          context,
+          dragState.targetPosition.pitch,
+          animationState as any,
+        );
+      }
     } catch (error) {
       console.error('Failed to render notes:', error);
     }
@@ -335,13 +414,14 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     previewAnimation,
     focusedPosition,
     keyboardMode,
+    dragState,
   ]);
 
   return (
     <div className={`${className}`}>
       {/* Main staff container */}
       <div className="relative">
-        <div
+        <motion.div
           ref={containerRef}
           className={`
           h-full p-0 transition-all duration-200
@@ -350,9 +430,22 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           ${keyboardMode ? 'ring-2 ring-blue-500/50' : ''}
           ${disabled ? '' : hoveredPosition ? 'cursor-crosshair' : 'cursor-default'}
         `}
+          animate={{
+            scale: dragState.isDragging ? 1.02 : 1,
+            opacity: dragState.isDragging ? 0.95 : 1,
+          }}
+          transition={{
+            type: 'spring',
+            stiffness: 300,
+            damping: 30,
+            duration: 0.2,
+          }}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           onClick={handleMouseClick}
+          onTouchStart={staffHandleTouchStart}
+          onTouchMove={staffHandleTouchMove}
+          onTouchEnd={staffHandleTouchEnd}
           onKeyDown={(_) => { }}
           onContextMenu={staffHandleContextMenu}
           role="button"
@@ -452,6 +545,16 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
         {hoveredPosition && !keyboardMode && (
           <span className="ml-2 text-blue-500">
             {`Hover: ${hoveredPosition.pitch && hoveredPosition.pitch.toString()} (line ${hoveredPosition.linePosition})`}
+          </span>
+        )}
+        {isLongPressActive && (
+          <span className="ml-2 text-yellow-500">
+            Long press active...
+          </span>
+        )}
+        {dragState.isDragging && (
+          <span className={`ml-2 ${dragState.isValidDrop ? 'text-green-500' : 'text-red-500'}`}>
+            {`Dragging: ${dragState.draggedNote?.toString()} → ${dragState.targetPosition?.pitch.toString()} (${dragState.isValidDrop ? 'valid' : 'invalid'})`}
           </span>
         )}
       </div>
