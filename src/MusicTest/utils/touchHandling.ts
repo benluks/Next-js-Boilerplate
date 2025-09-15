@@ -1,4 +1,4 @@
-import type { TouchConfig } from '../../../types/StaffInteraction';
+import type { TouchConfig } from '@/MusicTest/types/StaffInteraction';
 
 /**
  * Utility functions for handling touch events and mobile interactions
