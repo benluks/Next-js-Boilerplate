@@ -17,6 +17,9 @@ export const useStaffInteraction = (
   const [isHovering, setIsHovering] = useState(false);
   const [previewAnimation, setPreviewAnimation] = useState<'fadeIn' | 'fadeOut' | 'preview'>('preview');
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const touchHandledRef = useRef<boolean>(false);
+  const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   /**
    * Handle mouse move events for hover preview with smooth transitions
@@ -86,6 +89,12 @@ export const useStaffInteraction = (
     // Prevent context menu on right click - we'll handle it ourselves
     if (event.button > 2) {
       event.preventDefault();
+      return;
+    }
+
+    // If we already handled this as a touch event, don't handle it as a mouse click
+    if (touchHandledRef.current) {
+      touchHandledRef.current = false;
       return;
     }
 
@@ -183,6 +192,116 @@ export const useStaffInteraction = (
   }, [disabled, hoveredPosition]);
 
   /**
+   * Handle touch start events for mobile drag initiation
+   */
+  const handleTouchStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    if (!containerRef || !staffCoordinatesRef.current || disabled) {
+      return;
+    }
+
+    const touch = event.touches[0];
+    if (!touch) return;
+
+    // Prevent context menu on long press
+    // event.preventDefault();
+
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
+    touchStartRef.current = { x, y, time: Date.now() };
+    touchHandledRef.current = false;
+    console.log('Touch start at:', { x, y });
+
+    // Set up long press detection
+    longPressTimeoutRef.current = setTimeout(() => {
+      console.log('Long press detected!');
+      // For now, just log - we'll implement drag initiation here later
+    }, 500); // 500ms for long press
+  }, [containerRef, staffCoordinatesRef, disabled]);
+
+  /**
+   * Handle touch move events for drag updates
+   */
+  const handleTouchMove = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    if (!touchStartRef.current) return;
+
+    const touch = event.touches[0];
+    if (!touch) return;
+
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
+    // Check if this is a significant movement (start of drag)
+    const deltaX = Math.abs(x - touchStartRef.current.x);
+    const deltaY = Math.abs(y - touchStartRef.current.y);
+    
+    if (deltaX > 10 || deltaY > 10) {
+      // Clear long press timeout since we're dragging
+      if (longPressTimeoutRef.current) {
+        clearTimeout(longPressTimeoutRef.current);
+        longPressTimeoutRef.current = null;
+      }
+      
+      // This is a drag - we'll implement the actual drag logic in the next step
+      console.log('Drag detected:', { deltaX, deltaY, x, y });
+      event.preventDefault();
+    }
+  }, [containerRef]);
+
+  /**
+   * Handle touch end events
+   */
+  const handleTouchEnd = useCallback((_event: React.TouchEvent<HTMLDivElement>) => {
+    // Clear long press timeout
+    if (longPressTimeoutRef.current) {
+      clearTimeout(longPressTimeoutRef.current);
+      longPressTimeoutRef.current = null;
+    }
+
+    if (!touchStartRef.current || !containerRef || !staffCoordinatesRef.current) {
+      touchStartRef.current = null;
+      return;
+    }
+
+    const touchDuration = Date.now() - touchStartRef.current.time;
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const x = touchStartRef.current.x;
+    const y = touchStartRef.current.y;
+
+    // If it's a quick tap (not a drag), treat it as a click
+    if (touchDuration < 300) {
+      console.log('Quick tap detected');
+      if (staffCoordinatesRef.current.isWithinStaffArea(x, y)) {
+        const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
+        onNoteClick(position);
+        touchHandledRef.current = true;
+      }
+    } else if (touchDuration < 500) {
+      console.log('Medium touch detected (300-500ms)');
+      // This is a touch that was longer than a quick tap but shorter than long press
+      // We'll treat this as a click for now
+      if (staffCoordinatesRef.current.isWithinStaffArea(x, y)) {
+        const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
+        onNoteClick(position);
+        touchHandledRef.current = true;
+      }
+    } else {
+      console.log('Long touch ended (500ms+)');
+      // This was a long press that ended - we'll handle drag initiation here later
+    }
+
+    touchStartRef.current = null;
+  }, [containerRef, staffCoordinatesRef, onNoteClick]);
+
+  /**
    * Check if mouse is currently over an interactive area
    */
   const isOverInteractiveArea = useCallback(() => {
@@ -195,6 +314,9 @@ export const useStaffInteraction = (
     handleMouseClick,
     handleMouseLeave,
     handleContextMenu,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
 
     // State
     hoveredPosition,

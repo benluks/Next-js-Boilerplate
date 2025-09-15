@@ -137,6 +137,9 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     handleMouseClick: staffHandleMouseClick,
     handleMouseLeave: staffHandleMouseLeave,
     handleContextMenu: staffHandleContextMenu,
+    handleTouchStart: staffHandleTouchStart,
+    handleTouchMove: staffHandleTouchMove,
+    handleTouchEnd: staffHandleTouchEnd,
     hoveredPosition,
     previewAnimation,
     getCursorStyle,
@@ -353,6 +356,9 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           onClick={handleMouseClick}
+          onTouchStart={staffHandleTouchStart}
+          onTouchMove={staffHandleTouchMove}
+          onTouchEnd={staffHandleTouchEnd}
           onKeyDown={(_) => { }}
           onContextMenu={staffHandleContextMenu}
           role="button"
