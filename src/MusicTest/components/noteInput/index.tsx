@@ -10,7 +10,6 @@ import { Renderer, Stave, StaveConnector } from 'vexflow';
 import { Note } from '@/libs/Note';
 import {
   useKeyboardNavigation,
-  useMobileNoteDrag,
   useNoteManagement,
   useNoteSelection,
   useStaffInteraction,
@@ -24,7 +23,7 @@ import {
   NoteContextMenu,
   ValidationDisplay,
   ValidationStats,
-  } from './sections';
+} from './sections';
 
 const EMPTY_ARRAY: Note[] = [];
 /**
@@ -82,6 +81,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   // Use note management hook
   const {
     toggleNote,
+    canAddNote,
     removeNotes,
   } = useNoteManagement(selectedNotes, onNoteSelect, onNoteDeselect, maxNotes, limitNotes);
 
@@ -94,9 +94,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     handleContextMenuAction,
     isNoteSelected: isInternallySelected,
   } = useNoteSelection(selectedNotes, onNoteDeselect, removeNotes);
-
-  // Use mobile note drag hook
-  const { dragState, startDrag, updateDragPosition, endDrag } = useMobileNoteDrag(selectedNotes, onNoteSelect, onNoteDeselect);
 
   // Handle note click from staff interaction
   const handleNoteClick = useCallback(async (position: StaffPosition & { contextMenu?: { x: number; y: number } }) => {
@@ -169,57 +166,13 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     },
   );
 
-  // Mouse down handler (works for both desktop and mobile)
-  const handleTouchStart = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    if (disabled || !staffCoordinatesRef.current) return;
-
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    if (staffCoordinatesRef.current.isWithinStaffArea(x, y)) {
-      const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
-      const existingNote = selectedNotes.find(note =>
-        note.linePosition === position.linePosition
-      );
-
-      if (existingNote) {
-        console.log("Starting drag for note:", existingNote.toString());
-        startDrag(existingNote, position);
-      }
-    }
-  }, [disabled, selectedNotes, startDrag]);
-
-  // Simple mouse move handler that works on both desktop and mobile
-  const handleMouseMoveWithDrag = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    // Call the original mouse move handler
-    staffHandleMouseMove(event);
-    
-    // If we're dragging, update the position
-    if (dragState.isDragging && staffCoordinatesRef.current) {
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (!rect) return;
-
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
-
-      if (staffCoordinatesRef.current.isWithinStaffArea(x, y)) {
-        const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
-        console.log("Updating drag position to:", position);
-        updateDragPosition(position);
-      }
-    }
-  }, [dragState.isDragging, staffHandleMouseMove, updateDragPosition]);
-
-  // Enhanced mouse handlers that also manage keyboard mode and dragging
+  // Enhanced mouse handlers that also manage keyboard mode
   const handleMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    handleMouseMoveWithDrag(event);
+    staffHandleMouseMove(event);
     if (keyboardMode) {
       disableKeyboardMode();
     }
-  }, [handleMouseMoveWithDrag, keyboardMode, disableKeyboardMode]);
+  }, [staffHandleMouseMove, keyboardMode, disableKeyboardMode]);
 
   const handleMouseClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     staffHandleMouseClick(event);
@@ -233,25 +186,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     keyboardHandleMouseLeave();
   }, [staffHandleMouseLeave, keyboardHandleMouseLeave]);
 
-  const handleTouchEnd = useCallback((_event: React.MouseEvent<HTMLDivElement>) => {
-    console.log("handleTouchEnd called, dragState.isDragging:", dragState.isDragging);
-    if (dragState.isDragging) {
-      endDrag();
-    }
-  }, [dragState.isDragging, endDrag]);
-
-  // Wrap context menu handler to prevent during drag
-  const handleContextMenuWrapper = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    if (dragState.isDragging) {
-      event.preventDefault();
-      return;
-    }
-    staffHandleContextMenu(event);
-  }, [dragState.isDragging, staffHandleContextMenu]);
-
   // Use keyboard navigation hook
-
-  // No need for complex touch event management - using mouse events
 
   // Initialize VexFlow renderer and staff
   useEffect(() => {
@@ -372,21 +307,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
         );
       }
 
-      // Render dragged note as preview
-      if (dragState.isDragging && dragState.draggedNote && dragState.currentPosition) {
-        // Create a new note with the current position's pitch
-        const draggedNoteAtPosition = new Note({
-          ...dragState.currentPosition.pitch,
-          linePosition: dragState.currentPosition.linePosition,
-        });
-        renderPreviewNote(
-          stavesRef.current as Staves,
-          context,
-          draggedNoteAtPosition,
-          'preview',
-        );
-      }
-
       // Render preview note - prioritize hover over focus
       if (!keyboardMode && hoveredPosition && !selectedNotes.includes(hoveredPosition.pitch)) {
         renderPreviewNote(
@@ -415,9 +335,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     previewAnimation,
     focusedPosition,
     keyboardMode,
-    dragState.isDragging,
-    dragState.draggedNote,
-    dragState.currentPosition,
   ]);
 
   return (
@@ -427,32 +344,26 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
         <div
           ref={containerRef}
           className={`
-          h-full p-0 transition-all duration-200 select-none touch-none
+          h-full p-0 transition-all duration-200
           ${disabled ? 'cursor-not-allowed opacity-60' : ''}
           ${isOverInteractiveArea() ? 'shadow-md' : ''}
           ${keyboardMode ? 'ring-2 ring-blue-500/50' : ''}
           ${disabled ? '' : hoveredPosition ? 'cursor-crosshair' : 'cursor-default'}
         `}
-          style={{
-            touchAction: 'none',
-            userSelect: 'none',
-            WebkitUserSelect: 'none',
-            WebkitTouchCallout: 'none',
-            cursor: getCursorStyle(),
-          }}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           onClick={handleMouseClick}
-          onMouseDown={handleTouchStart}
-          onMouseUp={handleTouchEnd}
           onKeyDown={(_) => { }}
-          onContextMenu={handleContextMenuWrapper}
+          onContextMenu={staffHandleContextMenu}
           role="button"
           aria-label={ariaLabel}
           aria-describedby="staff-description"
           aria-disabled={disabled}
           tabIndex={disabled ? -1 : 0}
           aria-keyshortcuts="Tab ArrowUp ArrowDown Enter Space Delete Escape"
+          style={{
+            cursor: getCursorStyle(),
+          }}
         />
 
         {/* Context Menu - positioned relative to staff */}
@@ -541,11 +452,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
         {hoveredPosition && !keyboardMode && (
           <span className="ml-2 text-blue-500">
             {`Hover: ${hoveredPosition.pitch && hoveredPosition.pitch.toString()} (line ${hoveredPosition.linePosition})`}
-          </span>
-        )}
-        {dragState.isDragging && (
-          <span className="ml-2 text-purple-500">
-            {`Dragging: ${dragState.draggedNote?.toString()}`}
           </span>
         )}
       </div>
