@@ -261,7 +261,9 @@ export const useStaffInteraction = (
       }
       
       // This is a drag - we'll implement the actual drag logic in the next step
-      console.log('Drag detected:', { deltaX, deltaY, x, y });
+      // console.log('Drag detected:', { deltaX, deltaY, x, y });
+      console.log('Note at target position:', staffCoordinatesRef.current?.screenToStaffPosition(x, y).pitch);
+
       // event.preventDefault();
     }
   }, [containerRef]);
