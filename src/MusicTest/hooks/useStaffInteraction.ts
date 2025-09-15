@@ -2,6 +2,7 @@ import type { RefObject } from 'react';
 import type { StaffCoordinates } from '../utils';
 import type { StaffPosition } from '@/MusicTest/types/StaffInteraction';
 import { useCallback, useRef, useState } from 'react';
+import { Note } from '@/libs/Note';
 
 /**
  * Hook for managing staff interaction (mouse and touch events)
@@ -12,6 +13,7 @@ export const useStaffInteraction = (
   staffCoordinatesRef: RefObject<StaffCoordinates | null>,
   onNoteClick: (position: StaffPosition) => void,
   disabled: boolean = false,
+  onDragStart?: (note: Note, position: StaffPosition) => void,
 ) => {
   const [hoveredPosition, setHoveredPosition] = useState<StaffPosition | null>(null);
   const [isHovering, setIsHovering] = useState(false);
@@ -218,7 +220,17 @@ export const useStaffInteraction = (
     // Set up long press detection
     longPressTimeoutRef.current = setTimeout(() => {
       console.log('Long press detected!');
-      // For now, just log - we'll implement drag initiation here later
+      
+      // Check if there's a note at this position to drag
+      if (staffCoordinatesRef.current && onDragStart) {
+        const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
+        
+        // For now, we'll create a dummy note to test drag functionality
+        // Later we'll need to find the actual note at this position
+        const dummyNote = position.pitch;
+        console.log('Starting drag for note at position:', position);
+        onDragStart(dummyNote, position);
+      }
     }, 500); // 500ms for long press
   }, [containerRef, staffCoordinatesRef, disabled]);
 
@@ -250,7 +262,7 @@ export const useStaffInteraction = (
       
       // This is a drag - we'll implement the actual drag logic in the next step
       console.log('Drag detected:', { deltaX, deltaY, x, y });
-      event.preventDefault();
+      // event.preventDefault();
     }
   }, [containerRef]);
 

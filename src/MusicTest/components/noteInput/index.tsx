@@ -13,6 +13,7 @@ import {
   useNoteManagement,
   useNoteSelection,
   useStaffInteraction,
+  useNoteDrag,
 } from '@/MusicTest/hooks';
 import { getStaffAriaDescription, getStaffAriaLabel } from '@/MusicTest/utils/accessibility';
 
@@ -95,6 +96,14 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     isNoteSelected: isInternallySelected,
   } = useNoteSelection(selectedNotes, onNoteDeselect, removeNotes);
 
+  // Use note drag hook
+  const {
+    dragState,
+    startDrag,
+    updateDrag,
+    endDrag,
+  } = useNoteDrag();
+
   // Handle note click from staff interaction
   const handleNoteClick = useCallback(async (position: StaffPosition & { contextMenu?: { x: number; y: number } }) => {
     if (disabled) {
@@ -131,6 +140,18 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     onNoteSelect(newNote);
   }, [disabled, onNoteDeselect, onNoteSelect]);
 
+  // Handle drag start
+  const handleDragStart = useCallback((note: Note, position: StaffPosition) => {
+    console.log('Drag start for note:', note, 'at position:', position);
+    startDrag(note, position);
+  }, [startDrag]);
+
+  // Handle drag end
+  const handleDragEnd = useCallback((note: Note, newPosition: StaffPosition) => {
+    console.log('Drag end for note:', note, 'at position:', newPosition);
+    endDrag();
+  }, [endDrag]);
+
   // Use staff interaction hook
   const {
     handleMouseMove: staffHandleMouseMove,
@@ -149,6 +170,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     staffCoordinatesRef,
     handleNoteClick,
     disabled,
+    handleDragStart,
   );
 
   const {
