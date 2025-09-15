@@ -281,7 +281,7 @@ export const useStaffInteraction = (
 
     // Check if we should cancel long press due to movement
     if (touchStartRef.current) {
-      const distance = getTouchDistance(touchStartRef.current.touch, touch!);
+      const distance = getTouchDistance(touchStartRef.current.touch, touch);
       const timeElapsed = Date.now() - touchStartRef.current.startTime;
 
       if (shouldStartDrag(distance, timeElapsed)) {

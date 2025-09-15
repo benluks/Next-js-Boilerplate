@@ -63,6 +63,7 @@ export const useMobileNoteDrag = (
   const lastLogTimeRef = useRef<number>(0);
 
   const startDrag = useCallback((note: Note, startPosition: StaffPosition) => {
+    console.log('startDrag called with:', note.toString(), 'at position:', startPosition.linePosition);
     setDragState({
       isDragging: true,
       draggedNote: note,
@@ -76,7 +77,10 @@ export const useMobileNoteDrag = (
   }, [callbacks]);
 
   const updateDragPosition = useCallback((x: number, y: number, targetPosition: StaffPosition, isWithinBounds: boolean) => {
-    if (!dragState.draggedNote) return;
+    if (!dragState.draggedNote) {
+      console.log('updateDragPosition called but no draggedNote in state');
+      return;
+    }
     
     const isValidDrop = isWithinBounds && validateDropPosition(
       targetPosition,
@@ -94,6 +98,7 @@ export const useMobileNoteDrag = (
     
     setDragState(prev => ({
       ...prev,
+      draggedNote: targetPosition.pitch,
       currentDragPosition: { x, y },
       targetPosition,
       isValidDrop,
@@ -101,20 +106,27 @@ export const useMobileNoteDrag = (
   }, [dragState.draggedNote, selectedNotes, staffCoordinates]);
 
   const endDrag = useCallback(() => {
-    if (!dragState.draggedNote) return;
+    console.log('endDrag called, dragState:', dragState);
+    if (!dragState.draggedNote) {
+      console.log('endDrag called but no draggedNote in state');
+      return;
+    }
 
     let finalPosition: StaffPosition | null = null;
     
     if (dragState.isValidDrop && dragState.targetPosition) {
       // Use the snapped position from targetPosition
       finalPosition = dragState.targetPosition;
+      console.log('Final position: valid drop at', finalPosition.linePosition);
     } else if (dragState.dragStartPosition) {
       // Snap back to original position
       finalPosition = dragState.dragStartPosition;
+      console.log('Final position: snap back to', finalPosition.linePosition);
     }
     
     callbacks.onDragEnd(dragState.draggedNote, finalPosition);
     
+    console.log('Resetting drag state');
     setDragState(initialDragState);
   }, [dragState, callbacks]);
 

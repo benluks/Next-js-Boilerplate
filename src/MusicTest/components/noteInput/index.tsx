@@ -192,8 +192,15 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       // Handle long press - start drag
       const existingNote = selectedNotes.find(n => n.linePosition === position.linePosition);
       if (existingNote) {
+        console.log('Found existing note:', existingNote.toString());
+        console.log('Selected notes before deselect:', selectedNotes.length);
+        // Remove note from selectedNotes so it can be rendered as preview
         onNoteDeselect(existingNote);
+        console.log('Note deselected, starting drag...');
+        // Start drag
         startDrag(existingNote, position);
+      } else {
+        console.log('No existing note found at position:', position.linePosition);
       }
     },
     (x, y, position, isValid) => {
@@ -384,6 +391,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 
       // Render dragged note as preview note
       if (dragState.isDragging && dragState.draggedNote) {
+        console.log('Rendering dragged note as preview:', dragState.draggedNote.toString());
         renderPreviewNote(
           stavesRef.current as Staves,
           context,
