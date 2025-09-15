@@ -148,9 +148,33 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 
   // Handle drag end
   const handleDragEnd = useCallback((note: Note, newPosition: StaffPosition) => {
-    console.log('Drag end for note:', note, 'at position:', newPosition);
+    console.log('Drag end for note:', note.toString(), 'at position:', newPosition.pitch.toString());
+    
+    // Find the dragged note in selected notes
+    const draggedNoteIndex = selectedNotes.findIndex(selectedNote => 
+      selectedNote.linePosition === note.linePosition
+    );
+    
+    if (draggedNoteIndex !== -1) {
+      // Create a new note with the updated position
+      const updatedNote = new Note({
+        noteClass: newPosition.pitch.noteClass,
+        octave: newPosition.pitch.octave,
+        linePosition: newPosition.linePosition
+      });
+      
+      console.log('Moving note from', selectedNotes[draggedNoteIndex], 'to', updatedNote);
+      
+      // Replace the old note with the new one
+      const oldNote = selectedNotes[draggedNoteIndex];
+      if (oldNote) {
+        onNoteDeselect(oldNote);
+        onNoteSelect(updatedNote);
+      }
+    }
+    
     endDrag();
-  }, [endDrag]);
+  }, [endDrag, selectedNotes, onNoteDeselect, onNoteSelect]);
 
   // Use staff interaction hook
   const {
@@ -171,6 +195,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     handleNoteClick,
     disabled,
     handleDragStart,
+    handleDragEnd,
   );
 
   const {

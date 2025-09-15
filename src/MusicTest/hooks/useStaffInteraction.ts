@@ -14,6 +14,7 @@ export const useStaffInteraction = (
   onNoteClick: (position: StaffPosition) => void,
   disabled: boolean = false,
   onDragStart?: (note: Note, position: StaffPosition) => void,
+  onDragEnd?: (note: Note, position: StaffPosition) => void,
 ) => {
   const [hoveredPosition, setHoveredPosition] = useState<StaffPosition | null>(null);
   const [isHovering, setIsHovering] = useState(false);
@@ -22,6 +23,7 @@ export const useStaffInteraction = (
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const touchHandledRef = useRef<boolean>(false);
   const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const draggedPositionRef = useRef<StaffPosition | null>(null);
 
   /**
    * Handle mouse move events for hover preview with smooth transitions
@@ -227,9 +229,10 @@ export const useStaffInteraction = (
 
         // For now, we'll create a dummy note to test drag functionality
         // Later we'll need to find the actual note at this position
-        const dummyNote = position.pitch;
+        draggedPositionRef.current = position;
+        const targetNote = position.pitch;
         console.log('Starting drag for note at position:', position);
-        onDragStart(dummyNote, position);
+        onDragStart(targetNote, position);
       }
     }, 500); // 500ms for long press
   }, [containerRef, staffCoordinatesRef, disabled]);
@@ -260,14 +263,17 @@ export const useStaffInteraction = (
         longPressTimeoutRef.current = null;
       }
 
-        // This is a drag - validate the target position
-        if (staffCoordinatesRef.current) {
-          const targetPosition = staffCoordinatesRef.current.screenToStaffPosition(x, y);
-          console.log('Drag target position:', targetPosition.pitch.toString());
-          
-          // TODO: Add validation against existing notes
-          // For now, just log the position
-        }
+      // This is a drag - validate the target position
+      if (staffCoordinatesRef.current) {
+        const targetPosition = staffCoordinatesRef.current.screenToStaffPosition(x, y);
+        console.log('Drag target position:', targetPosition.pitch.toString());
+
+        // If we don't have a dragged note yet, set it now
+        draggedPositionRef.current = targetPosition;
+
+        // TODO: Add validation against existing notes
+        // For now, just log the position
+      }
 
       // event.preventDefault();
     }
@@ -314,7 +320,13 @@ export const useStaffInteraction = (
       }
     } else {
       console.log('Long touch ended (500ms+)');
-      // This was a long press that ended - we'll handle drag initiation here later
+      // This was a long press that ended - check if we were dragging
+      if (draggedPositionRef.current && onDragEnd) {
+        const startPosition = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
+        console.log('Ending drag for note:', startPosition.toString(), 'at position:', draggedPositionRef.current.toString());
+        onDragEnd(startPosition.pitch, draggedPositionRef.current);
+        draggedPositionRef.current = null;
+      }
     }
 
     touchStartRef.current = null;
