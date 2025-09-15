@@ -98,7 +98,6 @@ export const useMobileNoteDrag = (
     
     setDragState(prev => ({
       ...prev,
-      draggedNote: targetPosition.pitch,
       currentDragPosition: { x, y },
       targetPosition,
       isValidDrop,

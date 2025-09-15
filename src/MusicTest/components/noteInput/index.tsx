@@ -118,7 +118,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       if (finalPosition) {
         // Create new note at final position with updated pitch
         const newNote = new Note({
-          ...note,
+          ...finalPosition.pitch,
           linePosition: finalPosition.linePosition,
           // The pitch will be automatically calculated from linePosition
         });
