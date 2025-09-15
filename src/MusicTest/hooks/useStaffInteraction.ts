@@ -220,11 +220,11 @@ export const useStaffInteraction = (
     // Set up long press detection
     longPressTimeoutRef.current = setTimeout(() => {
       console.log('Long press detected!');
-      
+
       // Check if there's a note at this position to drag
       if (staffCoordinatesRef.current && onDragStart) {
         const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
-        
+
         // For now, we'll create a dummy note to test drag functionality
         // Later we'll need to find the actual note at this position
         const dummyNote = position.pitch;
@@ -252,17 +252,22 @@ export const useStaffInteraction = (
     // Check if this is a significant movement (start of drag)
     const deltaX = Math.abs(x - touchStartRef.current.x);
     const deltaY = Math.abs(y - touchStartRef.current.y);
-    
+
     if (deltaX > 10 || deltaY > 10) {
       // Clear long press timeout since we're dragging
       if (longPressTimeoutRef.current) {
         clearTimeout(longPressTimeoutRef.current);
         longPressTimeoutRef.current = null;
       }
-      
-      // This is a drag - we'll implement the actual drag logic in the next step
-      // console.log('Drag detected:', { deltaX, deltaY, x, y });
-      console.log('Note at target position:', staffCoordinatesRef.current?.screenToStaffPosition(x, y).pitch);
+
+        // This is a drag - validate the target position
+        if (staffCoordinatesRef.current) {
+          const targetPosition = staffCoordinatesRef.current.screenToStaffPosition(x, y);
+          console.log('Drag target position:', targetPosition.pitch.toString());
+          
+          // TODO: Add validation against existing notes
+          // For now, just log the position
+        }
 
       // event.preventDefault();
     }

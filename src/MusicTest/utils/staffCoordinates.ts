@@ -149,6 +149,45 @@ export class StaffCoordinates {
 
     return positions;
   }
+
+  /**
+   * Validate if a position is a valid drag target
+   * Returns the nearest valid position if invalid
+   */
+  validateDragTarget(x: number, y: number, existingNotes: Note[]): {
+    isValid: boolean;
+    targetPosition: StaffPosition;
+    reason?: string;
+  } {
+    // Check if position is within staff area
+    if (!this.isWithinStaffArea(x, y)) {
+      return {
+        isValid: false,
+        targetPosition: this.getNearestStaffPosition(x, y),
+        reason: 'Outside staff area'
+      };
+    }
+
+    const targetPosition = this.getNearestStaffPosition(x, y);
+    
+    // Check if there's already a note at this position
+    const existingNote = existingNotes.find(note => 
+      note.linePosition === targetPosition.linePosition
+    );
+
+    if (existingNote) {
+      return {
+        isValid: false,
+        targetPosition,
+        reason: 'Position occupied by existing note'
+      };
+    }
+
+    return {
+      isValid: true,
+      targetPosition
+    };
+  }
 }
 
 export type SystemCoordinates = { treble: StaffCoordinates | null; bass: StaffCoordinates | null };
