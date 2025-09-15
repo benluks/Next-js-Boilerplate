@@ -147,32 +147,23 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   }, [startDrag]);
 
   // Handle drag end
-  const handleDragEnd = useCallback((note: Note, newPosition: StaffPosition) => {
-    console.log('Drag end for note:', note.toString(), 'at position:', newPosition.pitch.toString());
-    
+  const handleDragEnd = useCallback((startingNote: Note, newPosition: StaffPosition) => {
+    console.log('Drag end for note:', startingNote.toString(), 'at position:', newPosition.pitch.toString());
+
     // Find the dragged note in selected notes
-    const draggedNoteIndex = selectedNotes.findIndex(selectedNote => 
-      selectedNote.linePosition === note.linePosition
+    const newNote = newPosition.pitch
+    const originalNote = selectedNotes.find(note =>
+      startingNote.linePosition === note.linePosition
     );
-    
-    if (draggedNoteIndex !== -1) {
-      // Create a new note with the updated position
-      const updatedNote = new Note({
-        noteClass: newPosition.pitch.noteClass,
-        octave: newPosition.pitch.octave,
-        linePosition: newPosition.linePosition
-      });
-      
-      console.log('Moving note from', selectedNotes[draggedNoteIndex], 'to', updatedNote);
-      
-      // Replace the old note with the new one
-      const oldNote = selectedNotes[draggedNoteIndex];
-      if (oldNote) {
-        onNoteDeselect(oldNote);
-        onNoteSelect(updatedNote);
-      }
+    if (originalNote) {
+      onNoteDeselect(originalNote);
     }
-    
+    onNoteSelect(newNote);
+
+    console.log('Moving note to', newNote.toString());
+
+
+
     endDrag();
   }, [endDrag, selectedNotes, onNoteDeselect, onNoteSelect]);
 
