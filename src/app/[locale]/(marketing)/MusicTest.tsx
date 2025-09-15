@@ -82,7 +82,7 @@ export function MusicTestPage() {
     switch (activeTab) {
       case 'game':
         return (
-          <div className="min-h-[600px]">
+          <div>
             <MusicTestController initialSettings={gameSettings} />
           </div>
         );

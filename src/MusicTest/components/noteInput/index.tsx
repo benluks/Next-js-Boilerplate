@@ -391,7 +391,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 
       // Render dragged note as preview note
       if (dragState.isDragging && dragState.draggedNote) {
-        console.log('Rendering dragged note as preview:', dragState.draggedNote.toString());
         renderPreviewNote(
           stavesRef.current as Staves,
           context,
